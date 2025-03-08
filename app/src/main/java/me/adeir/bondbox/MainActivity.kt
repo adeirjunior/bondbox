@@ -3,45 +3,50 @@ package me.adeir.bondbox
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import me.adeir.bondbox.ui.theme.BondboxTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import me.adeir.bondbox.ui.FriendsScreen
+import me.adeir.bondbox.ui.LoginScreen
+import me.adeir.bondbox.viewmodel.FriendViewModel
+import me.adeir.bondbox.viewmodel.FriendViewModelFactory
+import me.adeir.bondbox.viewmodel.UserViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import me.adeir.bondbox.ui.AddEditFriendScreen
+import me.adeir.bondbox.viewmodel.AddEditFriendViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            BondboxTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            val navController = rememberNavController()
+            val userViewModel: UserViewModel = viewModel()
+
+            val loggedInUser by userViewModel.loggedInUser.collectAsState()
+
+            NavHost(navController, startDestination = "login") {
+                composable("login") { LoginScreen(userViewModel, navController) }
+                composable("friends") {
+                    loggedInUser?.let { user ->
+                        val friendViewModel: FriendViewModel = viewModel(
+                            factory = FriendViewModelFactory(application, user.id)
+                        )
+                        FriendsScreen(friendViewModel, navController)
+                    }
                 }
+                composable("add") {
+                    val viewModel: AddEditFriendViewModel = viewModel()
+                    AddEditFriendScreen(viewModel, userViewModel, navController, friendId = null)
+                }
+                composable("edit/{friendId}") { backStackEntry ->
+                    val viewModel: AddEditFriendViewModel = viewModel()
+                    val friendId = backStackEntry.arguments?.getString("friendId")?.toIntOrNull()
+                    AddEditFriendScreen(viewModel, userViewModel, navController, friendId)
+                }
+
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Olá meu amigo $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BondboxTheme {
-        Greeting("Android")
     }
 }
