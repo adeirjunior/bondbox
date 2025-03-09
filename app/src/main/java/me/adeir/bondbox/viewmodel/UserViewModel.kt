@@ -35,4 +35,12 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    fun logout() {
+        viewModelScope.launch {
+            _loggedInUser.value = null
+            username = ""
+            password = ""
+        }
+    }
 }

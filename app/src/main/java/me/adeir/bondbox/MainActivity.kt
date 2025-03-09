@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
                         val friendViewModel: FriendViewModel = viewModel(
                             factory = FriendViewModelFactory(application, user.id)
                         )
-                        FriendsScreen(friendViewModel, navController)
+                        FriendsScreen(friendViewModel, userViewModel, navController)
                     }
                 }
                 composable("add") {
