@@ -23,10 +23,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             val userViewModel: UserViewModel = viewModel()
-
             val loggedInUser by userViewModel.loggedInUser.collectAsState()
 
-            NavHost(navController, startDestination = "login") {
+            // Define a página inicial dinamicamente
+            val startDestination = if (loggedInUser == null) "login" else "friends"
+
+            NavHost(navController, startDestination = startDestination) {
                 composable("login") { LoginScreen(userViewModel, navController) }
                 composable("friends") {
                     loggedInUser?.let { user ->
@@ -45,7 +47,6 @@ class MainActivity : ComponentActivity() {
                     val friendId = backStackEntry.arguments?.getString("friendId")?.toIntOrNull()
                     AddEditFriendScreen(viewModel, userViewModel, navController, friendId)
                 }
-
             }
         }
     }

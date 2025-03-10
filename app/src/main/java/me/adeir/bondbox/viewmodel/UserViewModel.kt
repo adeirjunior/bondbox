@@ -1,6 +1,7 @@
 package me.adeir.bondbox.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,13 +23,18 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     fun register() {
         viewModelScope.launch {
-            userDao.insertUser(User(username = username, password = password))
+            val existingUser = userDao.getUser()
+            if (existingUser == null) {
+                userDao.insertUser(User(username = username, password = password))
+            } else {
+                Log.d("UserViewModel", "Já existe um usuário registrado.")
+            }
         }
     }
 
     fun login(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            val user = userDao.getUser(username)
+            val user = userDao.getUser()
             if (user != null && user.password == password) {
                 _loggedInUser.value = user
                 onSuccess()
